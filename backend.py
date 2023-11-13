@@ -1,10 +1,16 @@
 import requests
 import base64
 import os
-
-
+import qrcode
 
 TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.DGI_v9bwNm_kSrC-CQSb3dBFzxOlrtBDHcEGXvCFqgU"
+
+VERSION_QR = 1
+ERROR_CORRECCION = qrcode.constants.ERROR_CORRECT_L
+TAMANIO_QR=15
+BORDE_QR = 2
+COLOR_FONDO_QR = "white"
+COLOR_QR="black"
 
 """
 #######################################################################################################################
@@ -238,6 +244,58 @@ def descargar_poster(poster_bytes:bytes)->None:
     with open ("imagenes/poster.png","wb") as f:
         f.write(poster_bytes)
 
+
+def crear_qr(info_qr:str)->None:
+    """
+    PRE:
+    info_qr: información a encriptar en el código qr
+    info_qr = “ID_QR + pelicula + ubicación_totem + cantidad_entradas + timestamp_compra”
+    POS:
+    Esta función crea una imagen en formato png
+    """
+
+    qr = qrcode.QRCode(version=VERSION_QR,error_correction=ERROR_CORRECCION,box_size=TAMANIO_QR,border=BORDE_QR)
+    """
+    El parámetro de versión es un número entero del 1 al 40 que controla el tamaño del Código QR (el más pequeño,
+     versión 1, es una matriz de 21x21). Establezca en Ninguno y use el parámetro de ajuste al crear el código para determinar
+     esto automáticamente.
+    
+     El parámetro error_correction controla la corrección de errores utilizada para el código QR. Los siguientes cuatro
+     Las constantes están disponibles en el paquete qrcode:
+
+         ERROR_CORRECT_L
+         Se pueden corregir alrededor del 7% o menos de los errores.
+
+         ERROR_CORRECT_M (predeterminado)
+         Se pueden corregir alrededor del 15% o menos de los errores.
+
+         ERROR_CORRECT_Q
+         Se pueden corregir alrededor del 25% o menos de los errores.
+
+         ERROR_CORRECT_H.
+         Se pueden corregir alrededor del 30% o menos de los errores.
+
+     El parámetro box_size controla cuántos píxeles tiene cada "cuadro" del código QR.
+
+     El parámetro de borde controla cuántos cuadros de grosor debe tener el borde (el valor predeterminado es 4,
+     que es el mínimo según las especificaciones).
+    """
+
+    qr.add_data(info_qr)
+
+    img = qr.make_image(back_color=COLOR_FONDO_QR, fill_color=COLOR_QR)
+    """
+    fill_color y back_color pueden cambiar el fondo y el color de pintura del QR,
+    cuando se utiliza la fábrica de imágenes predeterminada. Ambos parámetros aceptan tuplas de colores RGB.
+    """
+
+    qr.make(fit=True)
+    """
+    make(): este método con (fit = True) garantiza que se utilice toda la dimensión del código
+    QR, aunque nuestros datos de entrada puedan caber en menos campos.
+    """
+    
+    img.save("qr.png")
 
 def main()->None:
 
