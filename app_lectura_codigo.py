@@ -2,7 +2,19 @@ import qrcode
 import cv2
 import time
 import os
+from PIL import Image, ImageDraw,ImageFont
 
+
+def generar_pdf_código_e_id_qr(id_codigo_qr:str):
+    imagen = Image.open('qrcode.png').convert('RGB')
+    draw = ImageDraw.Draw(imagen)
+    texto:str = f"ID codigoQR: {id_codigo_qr}"
+    posiciones:tuple[int] = (150, 10)
+    color:tuple[int] = (0, 0, 0)
+    tipo_letra = ImageFont.truetype('arial.ttf', 16)
+    draw.text(posiciones, texto, fill=color, font=tipo_letra)
+    imagen.save('qrcode.png')
+    imagen.save("archivo.pdf")
 
 def generar_codigo_qr(string_generador:str) -> None:
     img = qrcode.make(string_generador)
@@ -103,6 +115,7 @@ def aplicacion_lectura_codigos() -> None:
     string_generador_id_QR:str = "pelicula + ubicación_totem + cantidad_entradas + timestamp_compra"#reemplazar
     generar_codigo_qr(string_generador_QR)
     id_codigo_qr:str = calcular_id_codigo_QR(string_generador_id_QR)
+    generar_pdf_código_e_id_qr(id_codigo_qr)
     opcion:str = seleccionar_opcion()
     while opcion != "3":
         if opcion == "1":
