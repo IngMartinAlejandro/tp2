@@ -2,8 +2,13 @@ import requests
 import base64
 import os
 import qrcode
+import time
+
+from PIL import Image, ImageDraw,ImageFont
 
 TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.DGI_v9bwNm_kSrC-CQSb3dBFzxOlrtBDHcEGXvCFqgU"
+HEADERS={"Authorization" : TOKEN}
+URL_BASE ="http://vps-3701198-x.dattaweb.com:4000"
 
 VERSION_QR = 1
 ERROR_CORRECCION = qrcode.constants.ERROR_CORRECT_L
@@ -295,13 +300,193 @@ def crear_qr(info_qr:str)->None:
     QR, aunque nuestros datos de entrada puedan caber en menos campos.
     """
     
-    img.save("qr.png")
+    img.save("qrcode.png")
+
+def buscar_pelicula(info_peliculas:list,nombre_pelicula:str)->str:
+    """
+    PRE:
+    info_peliculas: estructura de datos definida por los docentes en archivo, "API Reference(1).PDF"
+    [
+        {
+            "movie_id": "1",
+            "name": "BOOGYMAN TU MIEDO ES REAL",
+            "poster_id": "1"
+    
+    },
+        {
+            "movie_id": "2",
+            "name": "COCO",
+            "poster_id": "2"
+    
+    }
+    ]
+    nombre_pelicula: nombre película introducido por el cliente
+    POS:
+    movie_id: id de la película que introdujo el cliente
+    """
+
+    for pelicula in info_peliculas:
+
+        if nombre_pelicula == pelicula["name"]:
+            id_pelicula = pelicula["movie_id"]
+
+    return id_pelicula
+
+def buscar(nombre_pelicula:str)->str:
+    """
+    PRE:
+    nombre_pelicula: nombre de la pelicula introducido por el cliente en el buscador
+    POS: 
+    movie_id: id de la pelicula, "0" pelicula no encontrada
+    """
+
+    try:
+
+        return buscar_pelicula(nombre_pelicula)
+        
+    except:
+
+        return "0"
+    
+
+def revisar_disponibilidad_asientos(cantidad_entradas:int,asientos_disponibles:int)->bool:
+    """
+    PRE:
+    cantidad_entradas: cantidad de entradas compradas
+    asientos_disponibles: asientos disponibles, "available_seats"
+    POS:
+    True si hay asientos disponibles
+    """
+
+    if ( asientos_disponibles - cantidad_entradas ) > 0:
+        return True
+    else:
+        return False
+
+
+def reservar_pelicula(info_cines:list,cantidad_entradas:int,id_cine:int)->None:
+    """
+    PRE:
+    info_cines: estructura de datos definida por los docentes en archivo, "API Reference(1).PDF"
+    [
+        {
+            "cinema_id":"1",
+            "location":"Caballito",
+            "available_seats":32
+        },
+        {
+            "cinema_id":"2",
+            "location":"Abasto",
+            "available_seats":40
+        },
+        {
+            "cinema_id":"3",
+            "location":"Puerto Madero",
+            "available_seats":25
+        }
+    ]
+    cantidad_entradas: cantidad de entradas compradas
+    id_cine: id del cine, cinema_id
+    POS:
+    Actualiza info_cines disminuyendo las entradas disponibles
+    """
+
+    for cine in info_cines:
+
+        if info_cines["id_cinema"] == id_cine:
+            cine["available_seats"] -= cantidad_entradas
+
+
+def adicion_entradas(cantidad_entradas:int, PRECIO_ENTRADAS:float)->float:
+    """
+    PRE:
+    cantidad_entradas: cantidad de entradas compradas por el cliente
+    PRECIO_ENTRADAS: precio de una entrada
+    POS:
+    Precio total por entradas
+    """
+
+    return cantidad_entradas * PRECIO_ENTRADAS
+
+
+def comprar_snak(snack_adquiridos:dict,snack_adquirido:dict,cantidad:int)->dict:
+    """
+    PRE:
+    snack_adquirido: nombre snack introducido por el usuario
+    cantidad: cantidad de snack_adquirido
+    POS:
+    snacks_adquiridos: estructura de datos definida por los docentes en archivo, "API Reference(1).PDF"
+    {
+        "doritos": "2"
+        "popcorn_xxl": "1"
+    }
+    """
+
+    snack_adquiridos[snack_adquirido] = cantidad
+
+    return snack_adquiridos
+
+def adicion_snack(snacks_adquiridos:dict,snacks:dict):
+    """
+    PRE:
+    snacks_adquiridos: estructura de datos similar a la definida por los docentes en archivo, "API Reference(1).PDF"
+    {
+        "doritos": "2"
+        "popcorn_xxl": "1"
+    }
+    snacks: estructura de datos definida por los docentes en archivo, "API Reference(1).PDF"
+    {
+        "doritos": "2250"
+        "popcorn_xxl": "1000"
+    }
+    POS:
+    adicion: suma del precio de todos los snacks
+    """
+
+    adicion = 0 
+    
+    for snack_adquirido in snacks_adquiridos.item():
+        
+        for snack in snacks.item():
+            
+            if snack_adquirido[0] == snack[0]:
+                adicion += (snacks[1] * snack_adquirido[1]) 
+    
+    return adicion
+    
+
+def total_consumido(precio_snack:float,precio_entradas:float):
+    """
+    PRE:
+    precio_snack: suma precios de los sanacks comprados por el cliente
+    precio_entradas: suma precios de los entradas comprados por el cliente
+    POS:
+    precio total de la compra
+    """
+
+    return precio_entradas + precio_snack
+
+
+def generar_info_qr(id_qr,nombre_pelicula,ubicacion_totem,cantidad_entradas):
+    """
+    PRE:
+    id_qr:
+    nombre_pelicula: dato introducido por el cliente
+    ubicacion_totem: depende de la ubicación del totem, tiene que coincidir con el dela primera 
+    pantalla del programa
+    cantidad_entradas: dato introducido por el cliente
+    POS:
+    info_qr: información a encriptar en el código qr
+    info_qr = “ID_QR + pelicula + ubicación_totem + cantidad_entradas + timestamp_compra”
+    """
+
+    timestamp_compra = time.strftime("%d %B %Y %H:%M:%S",time.localtime()) #"%d %B %Y %H:%M:%S" -> formato fecha y hora
+
+    return (" ").join[id_qr,nombre_pelicula,ubicacion_totem,cantidad_entradas,timestamp_compra]
+
 
 def main()->None:
 
-    headers={"Authorization" : TOKEN}
-
-    url_base ="http://vps-3701198-x.dattaweb.com:4000"
-
+    pass
 
 main()

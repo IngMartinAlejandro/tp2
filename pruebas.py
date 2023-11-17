@@ -1,6 +1,6 @@
 from backend import consultar_peliculas, consultar_sinopsis,consultar_posters, consultar_snacks
 from backend import consultar_proyecciones, consultar_info_cines, consultar_peliculas_x_cine
-from backend import descargar_poster
+from backend import descargar_poster,crear_qr,generar_pdf_código_e_id_qr
 
 TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.DGI_v9bwNm_kSrC-CQSb3dBFzxOlrtBDHcEGXvCFqgU"
 
@@ -35,3 +35,9 @@ print(info_cines)
 peliculas_x_cine= consultar_peliculas_x_cine(url_base,"/1",headers=headers)
 
 print(peliculas_x_cine)
+
+cadena_prueba="ID_QR + pelicula + ubicación_totem + cantidad_entradas + timestamp_compra"
+
+crear_qr(cadena_prueba)
+
+generar_pdf_código_e_id_qr(cadena_prueba)
