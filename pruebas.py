@@ -1,6 +1,7 @@
 from backend import consultar_peliculas, consultar_sinopsis,consultar_posters, consultar_snacks
 from backend import consultar_proyecciones, consultar_info_cines, consultar_peliculas_x_cine
-from backend import descargar_poster,crear_qr,generar_pdf_código_e_id_qr
+from backend import descargar_poster,crear_qr, buscar_pelicula, buscar, revisar_disponibilidad_asientos
+from backend import completar_info_cine, completar_peliculas_x_cine,reservar_pelicula
 
 TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.DGI_v9bwNm_kSrC-CQSb3dBFzxOlrtBDHcEGXvCFqgU"
 
@@ -40,4 +41,22 @@ cadena_prueba="ID_QR + pelicula + ubicación_totem + cantidad_entradas + timesta
 
 crear_qr(cadena_prueba)
 
-generar_pdf_código_e_id_qr(cadena_prueba)
+id_movie =buscar_pelicula(info_peliculas,"COCO")
+
+assert id_movie == "2"
+
+id_movie =buscar(info_peliculas,"PEPE")
+assert id_movie == "0"
+
+assert revisar_disponibilidad_asientos(4,5) == True
+
+peliculas_x_cine_completo = completar_peliculas_x_cine(info_cines,url_base,headers)
+
+completar_info_cine(info_cines,peliculas_x_cine_completo)
+
+print(info_cines)
+
+reservar_pelicula(info_cines,10,"1","1")
+
+print(info_cines)
+
