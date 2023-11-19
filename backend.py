@@ -10,6 +10,8 @@ TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiw
 HEADERS={"Authorization" : TOKEN}
 URL_BASE ="http://vps-3701198-x.dattaweb.com:4000"
 
+PRECIO_ENTRADAS = 2000
+
 VERSION_QR = 1
 ERROR_CORRECCION = qrcode.constants.ERROR_CORRECT_L
 TAMANIO_QR=15
@@ -23,7 +25,7 @@ COLOR_QR="black"
                             Están en el mismo orden que el archivo "API Reference(1).PDF"
 #######################################################################################################################
 """
-def gestion_error_conexion(request):
+def gestion_error_conexion(request)->str:
 
     if not request.ok: 
 
@@ -118,6 +120,21 @@ def consultar_posters(url_base:str,poster_id:str,headers:str)->bytes:
     gestion_error_conexion(poster_request)
 
     return poster_bytes
+
+
+def descargar_poster(poster_bytes:bytes)->None:
+    """
+    PRE:
+    poster_bytes: bytes de la imagen del poster en archivo.png
+    POS:
+    Esta función escribe los bytes de la imagen en un archivo.png
+    """
+    
+    if not os.path.exists("imagenes"):
+        os.mkdir("imagenes")
+    
+    with open ("imagenes/poster.png","wb") as f:
+        f.write(poster_bytes)
 
 
 def consultar_snacks(url_base:str,headers:str)->dict:
@@ -231,23 +248,357 @@ def consultar_peliculas_x_cine(url_base:str,cinema_id:str,headers:dict)->list[di
 
 """
 #######################################################################################################################
-                                        BATERíA DE FUNCIONES BACKEND 
+                                     BATERíA DE FUNCIONES ESTRUCTURAS DE DATOS  
 #######################################################################################################################
 """
 
-def descargar_poster(poster_bytes:bytes)->None:
+def completar_peliculas_x_cine(url_base:str,headers:str):
+    """
+    PRE: 
+    url_base: url base como se encuentra en archivo "Trabajo Práctico N°2 - Algoritmos I - Lanzillotta. (1).PDF",
+    url_base ="http://vps-3701198-x.dattaweb.com:4000"
+    headers: TOKEN formateado, headers={"Authorization" : TOKEN}
+    POS:
+    peliculas_x_cine_completa: estructura de datos inspirada en la definida por los docentes en archivo, "API Reference(1).PDF"
+    [
+        {
+            "cinema_id":"1",
+            "has_movies":[
+                "1",
+                "2",
+                "3",
+            
+            ]
+        }
+        {
+            "cinema_id":"2",
+            "has_movies":[
+                "1",
+                "2",
+                "3",
+            
+            ]
+        }
+        {
+            "cinema_id":"3",
+            "has_movies":[
+                "1",
+                "2",
+                "3",
+            
+            ]
+        }
+    ]
+    """
+
+    info_cines= consultar_info_cines(url_base,headers)
+
+    peliculas_x_cine=[]
+
+    for cine in info_cines:
+
+        peliculas_x_cine.append( consultar_peliculas_x_cine (url_base,"/"+cine["cinema_id"],headers)[0] ) 
+    
+    return peliculas_x_cine
+
+
+def completar_info_cine(peliculas_x_cine:list[dict],url_base:str,headers:str)->list[dict]:
     """
     PRE:
-    poster_bytes: bytes de la imagen del poster en archivo.png
+    info_cines: estructura de datos definida por los docentes en archivo, "API Reference(1).PDF"
+    [
+        {
+            "cinema_id":"1",
+            "location":"Caballito",
+            "available_seats":32
+        },
+        {
+            "cinema_id":"2",
+            "location":"Abasto",
+            "available_seats":40
+        },
+        {
+            "cinema_id":"3",
+            "location":"Puerto Madero",
+            "available_seats":25
+        }
+    ]
+    peliculas_x_cine: estructura de datos definida en la función completar_peliculas_x_cine"
+    [
+        {
+            "cinema_id":"1",
+            "has_movies":[
+                "1",
+                "2",
+                "3",
+            
+            ]
+        }
+        {
+            "cinema_id":"2",
+            "has_movies":[
+                "1",
+                "2",
+                "3",
+            
+            ]
+        }
+        {
+            "cinema_id":"3",
+            "has_movies":[
+                "1",
+                "2",
+                "3",
+            
+            ]
+        }
+    ]
     POS:
-    Esta función escribe los bytes de la imagen en un archivo.png
+    info_cines_completa: estructura de datos basada en la definida por los docentes en archivo, "API Reference(1).PDF"
+    [
+        {
+            "cinema_id":"1",
+            "location":"Caballito",
+            "available_seats":32
+            "1":32
+            "2":32 ...
+            "id_movie":available_seats
+        },
+        {
+            "cinema_id":"2",
+            "location":"Abasto",
+            "available_seats":40
+            "1":32
+            "2":32 ...
+            "id_movie":available_seats
+        },
+        {
+            "cinema_id":"3",
+            "location":"Puerto Madero",
+            "available_seats":25
+            "1":32
+            "2":32 ...
+            "id_movie":available_seats
+        }
+    ]
     """
+
+    info_cine = consultar_info_cines(url_base,headers) #consulto API
+
+    for cine in info_cine:
+
+        for cine_peliculas_x_cine in peliculas_x_cine:
+        
+            if cine["cinema_id"]  == cine_peliculas_x_cine["cinema_id"]:
+
+                for peliculas in cine_peliculas_x_cine["has_movies"]:
+
+                    cine[peliculas] = cine["available_seats"]
     
-    if not os.path.exists("imagenes"):
-        os.mkdir("imagenes")
+    return info_cine
+
+
+def crear_cines(url_base,headers):
+
+    peliculas_x_cine = completar_peliculas_x_cine(url_base,headers)
+
+    info_peliculas = completar_info_cine(peliculas_x_cine,url_base,headers)
+
+    return info_peliculas
+
+
+"""
+#######################################################################################################################
+                                        BATERíA DE FUNCIONES RESERVA 
+#######################################################################################################################
+"""
+
+def buscar_pelicula(info_peliculas:list[dict],nombre_pelicula:str)->str:
+    """
+    PRE:
+    info_peliculas: estructura de datos definida por los docentes en archivo, "API Reference(1).PDF"
+    [
+        {
+            "movie_id": "1",
+            "name": "BOOGYMAN TU MIEDO ES REAL",
+            "poster_id": "1"
     
-    with open ("imagenes/poster.png","wb") as f:
-        f.write(poster_bytes)
+    },
+        {
+            "movie_id": "2",
+            "name": "COCO",
+            "poster_id": "2"
+    
+    }
+    ]
+    nombre_pelicula: nombre película introducido por el cliente
+    POS:
+    movie_id: id de la película que introdujo el cliente
+    """
+
+    for pelicula in info_peliculas:
+
+        if nombre_pelicula == pelicula["name"]:
+            id_pelicula = pelicula["movie_id"]
+
+    return id_pelicula
+
+
+def buscar(info_peliculas:list[dict],nombre_pelicula:str)->str:
+    """
+    PRE:
+    nombre_pelicula: nombre de la pelicula introducido por el cliente en el buscador
+    POS: 
+    movie_id: id de la pelicula, "0" pelicula no encontrada
+    """
+
+    try:
+
+        return buscar_pelicula(info_peliculas,nombre_pelicula)
+        
+    except:
+
+        return "0"
+    
+
+def revisar_disponibilidad_asientos(cantidad_entradas:int,asientos_disponibles:int)->bool:
+    """
+    PRE:
+    cantidad_entradas: cantidad de entradas compradas
+    asientos_disponibles: asientos disponibles, "available_seats"
+    POS:
+    True si hay asientos disponibles
+    """
+
+    if ( asientos_disponibles - cantidad_entradas ) > 0:
+        return True
+    else:
+        return False
+
+
+def reservar_pelicula(info_cines_completa:list[dict],cantidad_entradas:int,id_cine:str,id_movie:str)->None:
+    """
+    PRE:
+    info_cines_completa: estructura de datos definida por los docentes en archivo, "API Reference(1).PDF"
+    [
+        {
+            "cinema_id":"1",
+            "location":"Caballito",
+            "available_seats":32
+            "1":32
+            "2":32
+        },
+        ...
+    ]
+    cantidad_entradas: cantidad de entradas compradas
+    id_cine: id del cine, cinema_id
+    POS:
+    Actualiza info_cines disminuyendo las entradas disponibles
+    """
+
+    for cine in info_cines_completa:
+
+        if cine["cinema_id"] == id_cine:
+            cine[id_movie] -= cantidad_entradas
+
+
+"""
+#######################################################################################################################
+                                        BATERíA DE FUNCIONES COMPRA 
+#######################################################################################################################
+"""
+def adicion_entradas(cantidad_entradas:int, precio_entradas:float)->float:
+    """
+    PRE:
+    cantidad_entradas: cantidad de entradas compradas por el cliente
+    PRECIO_ENTRADAS: precio de una entrada
+    POS:
+    Precio total por entradas
+    """
+
+    return cantidad_entradas * precio_entradas
+
+
+def comprar_snak(snack_adquiridos:dict,snack_adquirido:str,cantidad:int)->dict:
+    """
+    PRE:
+    snack_adquirido: nombre snack introducido por el usuario
+    cantidad: cantidad de snack_adquirido
+    POS:
+    snacks_adquiridos: estructura de datos definida por los docentes en archivo, "API Reference(1).PDF"
+    {
+        "doritos": "2"
+        "popcorn_xxl": "1"
+        "Coca_xxl": "2"
+    }
+    """
+
+    snack_adquiridos[snack_adquirido] = cantidad
+
+    return snack_adquiridos
+
+def adicion_snack(snacks_adquiridos:dict,snacks:dict)->float:
+    """
+    PRE:
+    snacks_adquiridos: estructura de datos similar a la definida por los docentes en archivo, "API Reference(1).PDF"
+    {
+        "doritos": "2"
+        "popcorn_xxl": "1"
+    }
+    snacks: estructura de datos definida por los docentes en archivo, "API Reference(1).PDF"
+    {
+        "doritos": "2250"
+        "popcorn_xxl": "1000"
+    }
+    POS:
+    adicion: suma del precio de todos los snacks
+    """
+
+    adicion = 0 
+    
+    for snack_adquirido in snacks_adquiridos.item():
+        
+        for snack in snacks.item():
+            
+            if snack_adquirido[0] == snack[0]:
+                adicion += (snacks[1] * snack_adquirido[1]) 
+    
+    return adicion
+    
+
+def total_consumido(precio_snack:float,precio_entradas:float)->float:
+    """
+    PRE:
+    precio_snack: suma precios de los snacks comprados por el cliente
+    precio_entradas: suma precios de los entradas comprados por el cliente
+    POS:
+    precio total de la compra
+    """
+
+    return precio_entradas + precio_snack
+
+
+"""
+#######################################################################################################################
+                                        BATERíA DE FUNCIONES QR 
+#######################################################################################################################
+"""
+def generar_info_qr(nombre_pelicula:str,ubicacion_totem:str,cantidad_entradas:int)->str:
+    """
+    PRE:
+    id_qr:
+    nombre_pelicula: dato introducido por el cliente
+    ubicacion_totem: depende de la ubicación del totem, tiene que coincidir con el dela primera 
+    pantalla del programa
+    cantidad_entradas: dato introducido por el cliente
+    POS:
+    info_qr: información a encriptar en el código qr
+    info_qr = “ID_QR + pelicula + ubicación_totem + cantidad_entradas + timestamp_compra”
+    """
+
+    timestamp_compra = time.strftime("%d %B %Y %H:%M:%S",time.localtime()) #"%d %B %Y %H:%M:%S" -> formato fecha y hora
+
+    return (" ").join[nombre_pelicula,ubicacion_totem,cantidad_entradas,timestamp_compra]
 
 
 def crear_qr(info_qr:str)->None:
@@ -302,324 +653,9 @@ def crear_qr(info_qr:str)->None:
     
     img.save("qrcode.png")
 
-def buscar_pelicula(info_peliculas:list[dict],nombre_pelicula:str)->str:
-    """
-    PRE:
-    info_peliculas: estructura de datos definida por los docentes en archivo, "API Reference(1).PDF"
-    [
-        {
-            "movie_id": "1",
-            "name": "BOOGYMAN TU MIEDO ES REAL",
-            "poster_id": "1"
-    
-    },
-        {
-            "movie_id": "2",
-            "name": "COCO",
-            "poster_id": "2"
-    
-    }
-    ]
-    nombre_pelicula: nombre película introducido por el cliente
-    POS:
-    movie_id: id de la película que introdujo el cliente
-    """
-
-    for pelicula in info_peliculas:
-
-        if nombre_pelicula == pelicula["name"]:
-            id_pelicula = pelicula["movie_id"]
-
-    return id_pelicula
-
-def buscar(info_peliculas:list[dict],nombre_pelicula:str)->str:
-    """
-    PRE:
-    nombre_pelicula: nombre de la pelicula introducido por el cliente en el buscador
-    POS: 
-    movie_id: id de la pelicula, "0" pelicula no encontrada
-    """
-
-    try:
-
-        return buscar_pelicula(info_peliculas,nombre_pelicula)
-        
-    except:
-
-        return "0"
-    
-
-def revisar_disponibilidad_asientos(cantidad_entradas:int,asientos_disponibles:int)->bool:
-    """
-    PRE:
-    cantidad_entradas: cantidad de entradas compradas
-    asientos_disponibles: asientos disponibles, "available_seats"
-    POS:
-    True si hay asientos disponibles
-    """
-
-    if ( asientos_disponibles - cantidad_entradas ) > 0:
-        return True
-    else:
-        return False
-
-def completar_info_cine(info_cine:list[dict],peliculas_x_cine:list[dict])->None:
-    """
-    PRE:
-    info_cines: estructura de datos definida por los docentes en archivo, "API Reference(1).PDF"
-    [
-        {
-            "cinema_id":"1",
-            "location":"Caballito",
-            "available_seats":32
-        },
-        {
-            "cinema_id":"2",
-            "location":"Abasto",
-            "available_seats":40
-        },
-        {
-            "cinema_id":"3",
-            "location":"Puerto Madero",
-            "available_seats":25
-        }
-    ]
-    peliculas_x_cine: estructura de datos definida por los docentes en archivo, "API Reference(1).PDF"
-    [
-        {
-            "cinema_id":"1",
-            "has_movies":[
-                "1",
-                "2",
-                "3",
-            
-            ]
-        }
-    ]
-    POS:
-    info_cines_completa: estructura de datos basada en la definida por los docentes en archivo, "API Reference(1).PDF"
-    [
-        {
-            "cinema_id":"1",
-            "location":"Caballito",
-            "available_seats":32
-            "id_movie":available_seats
-        },
-        {
-            "cinema_id":"2",
-            "location":"Abasto",
-            "available_seats":40
-            "id_movie":available_seats
-        },
-        {
-            "cinema_id":"3",
-            "location":"Puerto Madero",
-            "available_seats":25
-            "id_movie":available_seats
-        }
-    ]
-    """
-    for cine in info_cine:
-
-        for cine_peliculas_x_cine in peliculas_x_cine:
-        
-            if cine["cinema_id"]  == cine_peliculas_x_cine["cinema_id"]:
-
-                for peliculas in cine_peliculas_x_cine["has_movies"]:
-
-                    cine[peliculas] = cine["available_seats"]
-
-def completar_peliculas_x_cine(info_cines:list[dict],URL_BASE:str,HEADERS:str):
-    """
-    PRE:
-    info_cines_completa: estructura de datos basada en la definida por los docentes en archivo, "API Reference(1).PDF"
-    [
-        {
-            "cinema_id":"1",
-            "location":"Caballito",
-            "available_seats":32
-            "id_movie":available_seats
-        },
-        {
-            "cinema_id":"2",
-            "location":"Abasto",
-            "available_seats":40
-            "id_movie":available_seats
-        },
-        {
-            "cinema_id":"3",
-            "location":"Puerto Madero",
-            "available_seats":25
-            "id_movie":available_seats
-        }
-    ]
-    POS:
-    peliculas_x_cine_completa: estructura de datos inspirada en la definida por los docentes en archivo, "API Reference(1).PDF"
-    [
-        {
-            "cinema_id":"1",
-            "has_movies":[
-                "1",
-                "2",
-                "3",
-            
-            ]
-        }
-        {
-            "cinema_id":"2",
-            "has_movies":[
-                "1",
-                "2",
-                "3",
-            
-            ]
-        }
-        {
-            "cinema_id":"3",
-            "has_movies":[
-                "1",
-                "2",
-                "3",
-            
-            ]
-        }
-    ]
-    """
-
-    peliculas_x_cine=[]
-
-    for cine in info_cines:
-
-        peliculas_x_cine.append( consultar_peliculas_x_cine (URL_BASE,"/"+cine["cinema_id"],HEADERS)[0] ) 
-    
-    return peliculas_x_cine
-
-def reservar_pelicula(info_cines_completa:list[dict],cantidad_entradas:int,id_cine:str,id_movie:str)->None:
-    """
-    PRE:
-    info_cines_completa: estructura de datos definida por los docentes en archivo, "API Reference(1).PDF"
-    [
-        {
-            "cinema_id":"1",
-            "location":"Caballito",
-            "available_seats":32
-            "id_movie",available_seats
-        },
-        {
-            "cinema_id":"2",
-            "location":"Abasto",
-            "available_seats":40
-            "id_movie",available_seats
-        },
-        {
-            "cinema_id":"3",
-            "location":"Puerto Madero",
-            "available_seats":25
-            "id_movie",available_seats
-        }
-    ]
-    cantidad_entradas: cantidad de entradas compradas
-    id_cine: id del cine, cinema_id
-    POS:
-    Actualiza info_cines disminuyendo las entradas disponibles
-    """
-
-    for cine in info_cines_completa:
-
-        if cine["cinema_id"] == id_cine:
-            cine[id_movie] -= cantidad_entradas
-
-
-def adicion_entradas(cantidad_entradas:int, PRECIO_ENTRADAS:float)->float:
-    """
-    PRE:
-    cantidad_entradas: cantidad de entradas compradas por el cliente
-    PRECIO_ENTRADAS: precio de una entrada
-    POS:
-    Precio total por entradas
-    """
-
-    return cantidad_entradas * PRECIO_ENTRADAS
-
-
-def comprar_snak(snack_adquiridos:dict,snack_adquirido:str,cantidad:int)->dict:
-    """
-    PRE:
-    snack_adquirido: nombre snack introducido por el usuario
-    cantidad: cantidad de snack_adquirido
-    POS:
-    snacks_adquiridos: estructura de datos definida por los docentes en archivo, "API Reference(1).PDF"
-    {
-        "doritos": "2"
-        "popcorn_xxl": "1"
-    }
-    """
-
-    snack_adquiridos[snack_adquirido] = cantidad
-
-    return snack_adquiridos
-
-def adicion_snack(snacks_adquiridos:dict,snacks:dict):
-    """
-    PRE:
-    snacks_adquiridos: estructura de datos similar a la definida por los docentes en archivo, "API Reference(1).PDF"
-    {
-        "doritos": "2"
-        "popcorn_xxl": "1"
-    }
-    snacks: estructura de datos definida por los docentes en archivo, "API Reference(1).PDF"
-    {
-        "doritos": "2250"
-        "popcorn_xxl": "1000"
-    }
-    POS:
-    adicion: suma del precio de todos los snacks
-    """
-
-    adicion = 0 
-    
-    for snack_adquirido in snacks_adquiridos.item():
-        
-        for snack in snacks.item():
-            
-            if snack_adquirido[0] == snack[0]:
-                adicion += (snacks[1] * snack_adquirido[1]) 
-    
-    return adicion
-    
-
-def total_consumido(precio_snack:float,precio_entradas:float):
-    """
-    PRE:
-    precio_snack: suma precios de los snacks comprados por el cliente
-    precio_entradas: suma precios de los entradas comprados por el cliente
-    POS:
-    precio total de la compra
-    """
-
-    return precio_entradas + precio_snack
-
-
-def generar_info_qr(id_qr:str,nombre_pelicula:str,ubicacion_totem:str,cantidad_entradas:int)->str:
-    """
-    PRE:
-    id_qr:
-    nombre_pelicula: dato introducido por el cliente
-    ubicacion_totem: depende de la ubicación del totem, tiene que coincidir con el dela primera 
-    pantalla del programa
-    cantidad_entradas: dato introducido por el cliente
-    POS:
-    info_qr: información a encriptar en el código qr
-    info_qr = “ID_QR + pelicula + ubicación_totem + cantidad_entradas + timestamp_compra”
-    """
-
-    timestamp_compra = time.strftime("%d %B %Y %H:%M:%S",time.localtime()) #"%d %B %Y %H:%M:%S" -> formato fecha y hora
-
-    return (" ").join[id_qr,nombre_pelicula,ubicacion_totem,cantidad_entradas,timestamp_compra]
-
 
 def main()->None:
 
-    pass
+    crear_cines(URL_BASE,HEADERS)
 
 main()
