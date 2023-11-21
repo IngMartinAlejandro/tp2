@@ -359,26 +359,20 @@ def completar_info_cine(peliculas_x_cine:list[dict],url_base:str,headers:str)->l
         {
             "cinema_id":"1",
             "location":"Caballito",
-            "available_seats":32
-            "1":32
-            "2":32 ...
-            "id_movie":available_seats
+            "1": {info_pelicula}
+            "2":{info_pelicula} ...
         },
         {
             "cinema_id":"2",
             "location":"Abasto",
-            "available_seats":40
-            "1":32
-            "2":32 ...
-            "id_movie":available_seats
+            "1": {info_pelicula}
+            "2":{info_pelicula} ...
         },
         {
             "cinema_id":"3",
             "location":"Puerto Madero",
-            "available_seats":25
-            "1":32
-            "2":32 ...
-            "id_movie":available_seats
+            "1": {info_pelicula}
+            "2":{info_pelicula} ...
         }
     ]
     """
@@ -393,7 +387,17 @@ def completar_info_cine(peliculas_x_cine:list[dict],url_base:str,headers:str)->l
 
                 for peliculas in cine_peliculas_x_cine["has_movies"]:
 
-                    cine[peliculas] = cine["available_seats"]
+                    info_pelicula = consultar_sinopsis(url_base,"/" + peliculas ,headers)
+
+                    info_pelicula.pop("id")
+
+                    info_pelicula.pop("poster_id")
+
+                    info_pelicula["available_seats"]= cine["available_seats"]
+
+                    cine[peliculas] = info_pelicula
+                
+                cine.pop("available_seats")
     
     return info_cine
 
@@ -405,6 +409,10 @@ def crear_cines(url_base,headers):
     info_peliculas = completar_info_cine(peliculas_x_cine,url_base,headers)
 
     return info_peliculas
+
+def info_un_cine(info_cine:list[dict],id_cine:str):
+
+    return info_cine[id_cine]
 
 
 """
@@ -499,7 +507,7 @@ def reservar_pelicula(info_cines_completa:list[dict],cantidad_entradas:int,id_ci
     for cine in info_cines_completa:
 
         if cine["cinema_id"] == id_cine:
-            cine[id_movie] -= cantidad_entradas
+            cine[id_movie]["available_seats"] -= cantidad_entradas
 
 
 """
