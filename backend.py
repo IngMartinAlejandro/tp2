@@ -317,11 +317,6 @@ def completar_info_cine(peliculas_x_cine:list[dict],url_base:str,headers:str)->l
             "location":"Abasto",
             "available_seats":40
         },
-        {
-            "cinema_id":"3",
-            "location":"Puerto Madero",
-            "available_seats":25
-        }
     ]
     peliculas_x_cine: estructura de datos definida en la función completar_peliculas_x_cine"
     [
@@ -343,14 +338,6 @@ def completar_info_cine(peliculas_x_cine:list[dict],url_base:str,headers:str)->l
             
             ]
         }
-        {
-            "cinema_id":"3",
-            "has_movies":[
-                "1",
-                "2",
-                "3",
-            
-            ]
         }
     ]
     POS:
@@ -360,21 +347,28 @@ def completar_info_cine(peliculas_x_cine:list[dict],url_base:str,headers:str)->l
             "cinema_id":"1",
             "location":"Caballito",
             "1": {info_pelicula}
-            "2":{info_pelicula} ...
+            "2": {info_pelicula} ...
         },
         {
             "cinema_id":"2",
             "location":"Abasto",
             "1": {info_pelicula}
-            "2":{info_pelicula} ...
+            "2": {info_pelicula} ...
         },
-        {
-            "cinema_id":"3",
-            "location":"Puerto Madero",
-            "1": {info_pelicula}
-            "2":{info_pelicula} ...
-        }
     ]
+    {info_pelicula} = 
+    {
+        'release_date': '', 
+        'name': 'LA MONJA 2', 
+        'synopsis': '1956 - Francia. Un sacerdote es asesinado. Un mal se está extendiendo. La secuela del gran éxito mundial sigue a 
+    la Hermana Irene cuando, una vez más, se encuentra cara a cara con Valak, la monja demonio . ', 
+        'gender': 'Terror', 
+        'duration': '109min', 
+        'actors': 'Anna Popplewell, Bonnie Aarons, Taissa Farmiga', 
+        'directors': 'Michael Chaves', 
+        'rating': '+13'
+        'available_seats':32
+    }
     """
 
     info_cine = consultar_info_cines(url_base,headers) #consulto API
@@ -402,18 +396,112 @@ def completar_info_cine(peliculas_x_cine:list[dict],url_base:str,headers:str)->l
     return info_cine
 
 
-def crear_cines(url_base,headers):
-
+def crear_cines(url_base:str,headers:dict):
+    """
+    PRE: 
+    url_base: url base como se encuentra en archivo "Trabajo Práctico N°2 - Algoritmos I - Lanzillotta. (1).PDF",
+    url_base ="http://vps-3701198-x.dattaweb.com:4000"
+    headers: TOKEN formateado, headers={"Authorization" : TOKEN}
+    POS:
+    info_cines_completa: estructura de datos basada en la definida por los docentes en archivo, "API Reference(1).PDF"
+    [
+        {
+            "cinema_id":"1",
+            "location":"Caballito",
+            "1": info_pelicula
+            "2": info_pelicula ...
+        },
+        {
+            "cinema_id":"2",
+            "location":"Abasto",
+            "1": info_pelicula
+            "2": info_pelicula ...
+        },
+    ]
+    info_pelicula = 
+    {
+        'release_date': '', 
+        'name': 'LA MONJA 2', 
+        'synopsis': '1956 - Francia. Un sacerdote es asesinado. Un mal se está extendiendo. La secuela del gran éxito mundial sigue a 
+    la Hermana Irene cuando, una vez más, se encuentra cara a cara con Valak, la monja demonio . ', 
+        'gender': 'Terror', 
+        'duration': '109min', 
+        'actors': 'Anna Popplewell, Bonnie Aarons, Taissa Farmiga', 
+        'directors': 'Michael Chaves', 
+        'rating': '+13'
+        'available_seats':32
+    }
+    """
     peliculas_x_cine = completar_peliculas_x_cine(url_base,headers)
 
     info_peliculas = completar_info_cine(peliculas_x_cine,url_base,headers)
 
     return info_peliculas
 
-def info_un_cine(info_cine:list[dict],id_cine:str):
+def aislar_info_un_cine(info_cine:list[dict],id_cine:str):
+    """
+    PRE: 
+    info_cines_completa: estructura de datos basada en la definida por los docentes en archivo, "API Reference(1).PDF"
+    [
+        {
+            "cinema_id":"1",
+            "location":"Caballito",
+            "1": info_pelicula
+            "2": info_pelicula ...
+        },
+        {
+            "cinema_id":"2",
+            "location":"Abasto",
+            "1": info_pelicula
+            "2": info_pelicula ...
+        },
+    ]
+    info_pelicula = 
+    {
+        'release_date': '', 
+        'name': 'LA MONJA 2', 
+        'synopsis': '1956 - Francia. Un sacerdote es asesinado. Un mal se está extendiendo. La secuela del gran éxito mundial sigue a 
+    la Hermana Irene cuando, una vez más, se encuentra cara a cara con Valak, la monja demonio . ', 
+        'gender': 'Terror', 
+        'duration': '109min', 
+        'actors': 'Anna Popplewell, Bonnie Aarons, Taissa Farmiga', 
+        'directors': 'Michael Chaves', 
+        'rating': '+13'
+        'available_seats':32
+    }
+    PRE: 
+    info_cines_completa: estructura de datos basada en la definida por los docentes en archivo, "API Reference(1).PDF"
+    [
+        {
+            "cinema_id":"1",
+            "location":"Caballito",
+            "1": info_pelicula
+            "2": info_pelicula ...
+        }
+    ]
+    info_pelicula = 
+    {
+        'release_date': '', 
+        'name': 'LA MONJA 2', 
+        'synopsis': '1956 - Francia. Un sacerdote es asesinado. Un mal se está extendiendo. La secuela del gran éxito mundial sigue a 
+    la Hermana Irene cuando, una vez más, se encuentra cara a cara con Valak, la monja demonio . ', 
+        'gender': 'Terror', 
+        'duration': '109min', 
+        'actors': 'Anna Popplewell, Bonnie Aarons, Taissa Farmiga', 
+        'directors': 'Michael Chaves', 
+        'rating': '+13'
+        'available_seats':32
+    }
+    """
+    info_un_cine = {}
 
-    return info_cine[id_cine]
+    for cine in info_cine:
 
+        if cine["cinema_id"] == id_cine:
+
+            info_un_cine = cine
+
+    return info_un_cine
 
 """
 #######################################################################################################################

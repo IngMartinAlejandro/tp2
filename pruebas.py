@@ -1,7 +1,8 @@
 from backend import consultar_peliculas, consultar_sinopsis,consultar_posters, consultar_snacks
 from backend import consultar_proyecciones, consultar_info_cines, consultar_peliculas_x_cine
 from backend import descargar_poster,crear_qr, buscar_pelicula, buscar, revisar_disponibilidad_asientos
-from backend import completar_info_cine, completar_peliculas_x_cine,reservar_pelicula
+from backend import completar_info_cine, completar_peliculas_x_cine,reservar_pelicula, crear_cines
+from backend import aislar_info_un_cine
 
 TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.DGI_v9bwNm_kSrC-CQSb3dBFzxOlrtBDHcEGXvCFqgU"
 
@@ -67,6 +68,17 @@ info_cines = completar_info_cine(peliculas_x_cine_completo,url_base,headers)
 
 print()
 print(info_cines)
+
+cines = crear_cines(url_base,headers)
+
+print()
+print(cines)
+
+cine = aislar_info_un_cine(cines,"1")
+
+print()
+print(cine)
+
 
 ### pruebas reservar pelicula ###
 reservar_pelicula(info_cines,10,"1","1")
