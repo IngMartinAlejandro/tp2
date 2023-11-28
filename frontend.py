@@ -11,7 +11,7 @@ TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiw
 HEADERS={"Authorization" : TOKEN}
 URL_BASE ="http://vps-3701198-x.dattaweb.com:4000"
 
-PRECIO_ENTRADAS = 2000
+PRECIO_ENTRADAS = 3500
 
 VERSION_QR = 1
 ERROR_CORRECCION = qrcode.constants.ERROR_CORRECT_L
@@ -44,22 +44,29 @@ def Encabezado(location: str, pantalla: tkinter) -> None:
     titulo_cine = tkinter.Label(pantalla, text = f"CINEMA {location}", font = "Mincho 28", bg = ENCABEZADO_COLOR, fg = "white")
     titulo_cine.grid(column = 0, row = 0)   
 
-def Checkout():
+def Boton_regreso(fila: int, pantalla: tkinter) -> None:
+    boton_regreso = tkinter.Button(pantalla, text = "Volver a pantalla Anterior", font = BOTON_FONT,
+                                   bg = MARCO_COLOR, command = pantalla.destroy)
+    boton_regreso.grid(row = fila, column = 0)
+
+def Configuracion(pantalla: tkinter) -> None:
+    pantalla.geometry(TAMANIO_PANTALLA)
+    pantalla.configure(bg = FONDO_COLOR)
+    pantalla.resizable(0, True)
+    pantalla.focus()
+    pantalla.grab_set()
+
+
+def Checkout() -> None:
     #Esta es la informacion que debera recibir de la API
     #---------------------------------------------------    
     location = "Location"
     cant_tickets = 1
     list_snack = {"doritos": 4, "popcorn_xxl": 2}
-    snacks = {"doritos": "2500.00", "popcorn_xxl": "4300.00"}
     precio_total = 45000
     #---------------------------------------------------
     pantalla_checkout = tkinter.Toplevel()
-    pantalla_checkout.geometry(TAMANIO_PANTALLA)
-    pantalla_checkout.configure(bg = FONDO_COLOR)
-    pantalla_checkout.resizable(0, True)
-    
-    pantalla_checkout.focus()
-    pantalla_checkout.grab_set()
+    Configuracion(pantalla_checkout)
     
     Encabezado(location, pantalla_checkout)    
     pantalla_checkout.title(f"CINEMA{location} - Pantalla Checkout")
@@ -89,11 +96,13 @@ def Checkout():
     decoracion =  tkinter.Frame(pantalla_checkout, width = 576, height = 5, bg = FONDO_COLOR)
     decoracion.grid(column = 0, row = 20, ipady = 20, columnspan = 2)
     
+    Boton_regreso(21, pantalla_checkout)
+    
     boton_comprar_entradas = tkinter.Button(pantalla_checkout, text = "Pagar", font = BOTON_FONT,
                                    bg = MARCO_COLOR)
-    boton_comprar_entradas.grid(row = 21, column = 0, columnspan = 2)
+    boton_comprar_entradas.grid(row = 21, column = 1)
 
-def Snack(pantalla_reserva):
+def Snack(pantalla_reserva) -> None:
     #Esta es la informacion que debera recibir de la API
     #---------------------------------------------------    
     snacks = {"doritos": "2500.00", "popcorn_xxl": "4300.00"}
@@ -101,28 +110,20 @@ def Snack(pantalla_reserva):
     #---------------------------------------------------
     label_listado_titulo = tkinter.Label(pantalla_reserva, text = "LOS SNACKS DISPONIBLES SON:", font = TITULO_FONT, bg = FONDO_COLOR,
                                    fg = LETRA_COLOR)
-    label_listado_titulo.grid(row = 4, column = 0, ipady = 20, columnspan = 2, sticky = "w")
+    label_listado_titulo.grid(row = 6, column = 0, ipady = 20, columnspan = 2, sticky = "w")
     i = 0
     for n in snacks:
-        label_listado = tkinter.Label(pantalla_reserva, text = f"{n} : {snacks[n]}".upper(), font = LIST_FONT,
+        label_listado = tkinter.Label(pantalla_reserva, text = f"{n} ({snacks[n]}): {cant_snacks}".upper(), font = LIST_FONT,
                     bg = FONDO_COLOR, fg = LETRA_COLOR)
-        label_listado.grid(row = (5 + i), column = 0, sticky = "e")
-        i += 1
-
-    label_entradas = tkinter.Label(pantalla_reserva, text = "EL SNACK A COMPRAR ES: ", font = TITULO_FONT, bg = FONDO_COLOR,
-                                   fg = LETRA_COLOR)
-    label_entradas.grid(row = 17, column = 0, ipady = 20, columnspan = 2, sticky = "w")
-    cuadro_entrada = tkinter.Entry(pantalla_reserva, font = TEXTO_FONT)
-    cuadro_entrada.insert(0, " Ingrese el Snack...")
-    cuadro_entrada.grid(row = 17, column = 1)
-    
-    label_entradas = tkinter.Label(pantalla_reserva, text = F"CANTIDAD SNACKS: {cant_snacks}", font = TITULO_FONT, bg = FONDO_COLOR,
-                                   fg = LETRA_COLOR)
-    label_entradas.grid(row = 18, column = 0, ipady = 20, columnspan = 2, sticky = "w")
-    boton_entradas = tkinter.Button(pantalla_reserva, font = BOTON_FONT, bg = FONDO_COLOR,
+        label_listado.grid(row = (7 + i), column = 0, sticky = "e")
+        
+        boton_entradas = tkinter.Button(pantalla_reserva, font = 'Rockwell 11', bg = FONDO_COLOR,
                                     fg = LETRA_COLOR, text = "Cantidad +1")
-    boton_entradas.grid(row = 18, column = 1)
-
+        boton_entradas.grid(row = (7 + i), column = 1)
+        i += 1
+    decoracion =  tkinter.Frame(pantalla_reserva, width = 576, height = 5, bg = FONDO_COLOR)
+    decoracion.grid(column = 0, row = 18, ipady = 20, columnspan = 2)
+    
     boton_comprar_entradas = tkinter.Button(pantalla_reserva, text = "Añadir al Carrito", font = BOTON_FONT,
                                    bg = MARCO_COLOR)
     boton_comprar_entradas.grid(row = 19, column = 1)
@@ -132,41 +133,46 @@ def Pantalla_Reserva() -> None:
     #---------------------------------------------------    
     location = "Location"
     cant_entradas = 0
+    entradas_disponibles = 45
     #---------------------------------------------------
     pantalla_reserva = tkinter.Toplevel()
-    pantalla_reserva.geometry(TAMANIO_PANTALLA)
-    pantalla_reserva.configure(bg = FONDO_COLOR)
-    pantalla_reserva.resizable(0, True)
-    
-    pantalla_reserva.focus()
-    pantalla_reserva.grab_set()
+    Configuracion(pantalla_reserva)
     
     Encabezado(location, pantalla_reserva)    
     pantalla_reserva.title(f"CINEMA{location} - Pantalla Reserva")
     
-    label_entradas = tkinter.Label(pantalla_reserva, text = F"CANTIDAD ENTRADAS: {cant_entradas}", font = TITULO_FONT, bg = FONDO_COLOR,
-                                   fg = LETRA_COLOR)
+    label_entradas = tkinter.Label(pantalla_reserva, text = F"LAS ENTRADAS DISPONIBLES SON ({entradas_disponibles}):", font = TITULO_FONT,
+                                   bg = FONDO_COLOR, fg = LETRA_COLOR)
     label_entradas.grid(row = 2, column = 0, ipady = 20, columnspan = 2, sticky = "w")
     
-    boton_entradas = tkinter.Button(pantalla_reserva, font = BOTON_FONT, bg = FONDO_COLOR,
+    label_entradas = tkinter.Label(pantalla_reserva, text = F"Entradas ({PRECIO_ENTRADAS}): {cant_entradas}", font = LIST_FONT,
+                                   bg = FONDO_COLOR, fg = LETRA_COLOR)
+    label_entradas.grid(row = 3, column = 0, sticky = "e")
+    
+    boton_entradas = tkinter.Button(pantalla_reserva, font = 'Rockwell 11', bg = FONDO_COLOR,
                                     fg = LETRA_COLOR, text = "Cantidad +1")
-    boton_entradas.grid(row = 2, column = 1)
+    boton_entradas.grid(row = 3, column = 1)
+    
+    decoracion =  tkinter.Frame(pantalla_reserva, width = 576, height = 5, bg = FONDO_COLOR)
+    decoracion.grid(column = 0, row = 4, ipady = 20, columnspan = 2)
     
     boton_comprar_entradas = tkinter.Button(pantalla_reserva, text = "Añadir al Carrito", font = BOTON_FONT,
                                    bg = MARCO_COLOR)
-    boton_comprar_entradas.grid(row = 3, column = 1)
+    boton_comprar_entradas.grid(row = 5, column = 1)
     
     comando_snack = lambda: Snack(pantalla_reserva)
     boton_snack = tkinter.Button(pantalla_reserva, text = "Añadir Snacks", font = BOTON_FONT,
                                    bg = MARCO_COLOR, command = comando_snack)
-    boton_snack.grid(row = 4, column = 0)
+    boton_snack.grid(row = 6, column = 0)
     
     decoracion =  tkinter.Frame(pantalla_reserva, width = 576, height = 5, bg = FONDO_COLOR)
     decoracion.grid(column = 0, row = 20, ipady = 20, columnspan = 2)
     
+    Boton_regreso(21, pantalla_reserva)
+    
     boton_comprar_entradas = tkinter.Button(pantalla_reserva, text = "Finalizar Compra", font = BOTON_FONT,
                                    bg = MARCO_COLOR, command = Checkout)
-    boton_comprar_entradas.grid(row = 21, column = 0, columnspan = 2)
+    boton_comprar_entradas.grid(row = 21, column = 1)
 
 def Pantalla_Secundaria() -> None:
     #Esta es la informacion que debera recibir de la API
@@ -181,12 +187,7 @@ def Pantalla_Secundaria() -> None:
     rating = "+13"
     #---------------------------------------------------
     pantalla_secundaria = tkinter.Toplevel()
-    pantalla_secundaria.geometry(TAMANIO_PANTALLA)
-    pantalla_secundaria.configure(bg = FONDO_COLOR)
-    pantalla_secundaria.resizable(0, True)
-    
-    pantalla_secundaria.focus()
-    pantalla_secundaria.grab_set()
+    Configuracion(pantalla_secundaria)
     
     Encabezado(location, pantalla_secundaria)
     pantalla_secundaria.title(f"CINEMA{location} - Pantalla Pelicula")
@@ -225,10 +226,8 @@ def Pantalla_Secundaria() -> None:
                                        bg = FONDO_COLOR, fg = LETRA_COLOR)
         label_sinopsis.grid(row = (8 + n), columnspan=2)
         letra = 65
-        
-    boton_regreso = tkinter.Button(pantalla_secundaria, text = "Volver a pantalla Anterior", font = BOTON_FONT,
-                                   bg = MARCO_COLOR, command = pantalla_secundaria.destroy)
-    boton_regreso.grid(row = 18, column = 0)
+    
+    Boton_regreso(18, pantalla_secundaria)
         
     boton_reserva = tkinter.Button(pantalla_secundaria, text = "Reservar", font = BOTON_FONT,
                                    bg = MARCO_COLOR, command = Pantalla_Reserva)
@@ -245,10 +244,8 @@ def Pantalla_Principal() -> None:
     poster_4_id = "poster_4_id"
     #---------------------------------------------------
     pantalla_principal = tkinter.Tk()
-    pantalla_principal.geometry(TAMANIO_PANTALLA)
-    pantalla_principal.configure(bg = FONDO_COLOR)
-    pantalla_principal.resizable(0, True)
-
+    Configuracion(pantalla_principal)
+    
     Encabezado(location, pantalla_principal)
     pantalla_principal.title(f"CINEMA{location} - Pantalla Principal")
     
