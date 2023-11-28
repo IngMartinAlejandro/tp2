@@ -16,8 +16,8 @@ URL_BASE:str = "http://vps-3701198-x.dattaweb.com:4000"
 PRECIO_ENTRADAS = 4000
 
 
-def es_par(numero):
-    auxiliar = 0
+def es_par(numero:int) -> int:
+    auxiliar:int = 0
     if numero % 2 != 0:
         auxiliar = 1
     return auxiliar
@@ -450,12 +450,12 @@ def generar_codigo_qr(string_generador:str) -> None:
 
 def generar_pdf_código_e_id_qr(id_codigo_qr:str):
     nombre_pdf:str = "completar"
-    imagen = Image.open('qrcode.png').convert('RGB')
+    imagen:Image = Image.open('qrcode.png').convert('RGB')
     draw = ImageDraw.Draw(imagen)
     texto:str = f"ID codigoQR: {id_codigo_qr}"
     posiciones:tuple[int] = (150, 10)#coordenadas x,y
     color:tuple[int] = (0, 0, 0)#color negro
-    tipo_letra = ImageFont.truetype('arial.ttf', 16)
+    tipo_letra:ImageFont = ImageFont.truetype('arial.ttf', 16)
     draw.text(posiciones, texto, fill=color, font=tipo_letra)
     os.remove("qrcode.png")
     if not os.path.exists("archivos_pdf"):
@@ -475,7 +475,7 @@ def Encabezado(location: str, pantalla: tkinter) -> None:
                 font = "Mincho 20",
                 bg = 'gold3',
                 fg = "#242424"
-                ).grid(row=0, column=0, columnspan=2)
+                ).grid(row=0, column=0, columnspan=2, pady=10)
 
 def Snack(pantalla_reserva):
     #Esta es la informacion que debera recibir de la API
@@ -541,17 +541,17 @@ def Pantalla_Reserva(dato_cine, id_pelicula) -> None:
                                                 ).place(x = 170, y = 250)
 
 
-def Pantalla_Secundaria(dato_cine, id_pelicula:str) -> None:
-    datos_pelicula = dato_cine["peliculas"][id_pelicula]
-    name = datos_pelicula["name"]
-    synopsis = datos_pelicula["synopsis"]
-    gender = datos_pelicula["gender"]
-    duration = datos_pelicula["duration"]
-    actors = datos_pelicula["actors"]
-    directors = datos_pelicula["directors"]
-    rating = datos_pelicula["rating"]
+def Pantalla_Secundaria(dato_cine:dict, id_pelicula:str) -> None:
+    datos_pelicula:dict = dato_cine["peliculas"][id_pelicula]
+    name:str = datos_pelicula["name"]
+    synopsis:str = datos_pelicula["synopsis"]
+    gender:str = datos_pelicula["gender"]
+    duration:str = datos_pelicula["duration"]
+    actors:str = datos_pelicula["actors"]
+    directors:str = datos_pelicula["directors"]
+    rating:str = datos_pelicula["rating"]
 
-    pantalla_secundaria = tkinter.Toplevel()
+    pantalla_secundaria:tkinter.Toplevel = tkinter.Toplevel()
     pantalla_secundaria.geometry("700x720")
     pantalla_secundaria.resizable(0, True)
     pantalla_secundaria.focus()
@@ -611,75 +611,95 @@ def Pantalla_Secundaria(dato_cine, id_pelicula:str) -> None:
                             command = lambda:Pantalla_Reserva(dato_cine, id_pelicula)
                             ).place(x = 410, y = 600)
 
-def validar_ingreso(dato_cine, botones, poster_ref:list, id_posters_cine:list[str], pelicula_ingresada:str):
-    exite_pelicula = False
-    pelculas_disponibles = []
-    posicion_poster_encontrado = 0
-    id_peliculas = list((dato_cine["peliculas"]).keys())
-    id_primer_pelicula = id_posters_cine[0]
-    imagen_primer_boton = ImageTk.PhotoImage(file=f"poster_peliculas/poster{id_primer_pelicula}.png")
+def nombres_peliculas_x_cine(id_peliculas:list[str]) -> list[str]:
+    peliculas_cine_consultado:list[str] = []
+    peliculas_totales:list[dict] = consultar_peliculas(URL_BASE, HEADERS)
     for id_pelicula in id_peliculas:
-        pelicula:str = dato_cine["peliculas"][id_pelicula]["name"]
-        pelculas_disponibles.append(pelicula)
-        if pelicula == pelicula_ingresada.upper():
-            nueva_imagen = ImageTk.PhotoImage(file=f"poster_peliculas/poster{id_pelicula}.png")
-            posicion_poster_encontrado = id_posters_cine.index(id_pelicula)
-            id_posters_cine[0] = id_pelicula
-            id_posters_cine[posicion_poster_encontrado] = id_primer_pelicula
-            poster_ref[0] = nueva_imagen
-            poster_ref[posicion_poster_encontrado] = imagen_primer_boton
-            botones[0].config(image=nueva_imagen)
-            botones[posicion_poster_encontrado].config(image=imagen_primer_boton)
-            exite_pelicula = True
-    if exite_pelicula == False:
-        messagebox.showwarning("validar peliculas ingresada", f"Ingrese películas validas: {pelculas_disponibles}")
+        peliculas_cine_consultado.append(peliculas_totales[int(id_pelicula) - 1]["name"])
+    return peliculas_cine_consultado
 
-def on_configure(canvas):
+def validar_ingreso(botones:list[tkinter.Button], poster_ref:list, id_posters_cine:list[str], pelicula_ingresada:str) -> None:
+    peliculas_cine:list[str] = nombres_peliculas_x_cine(id_posters_cine)
+    if pelicula_ingresada.upper() in peliculas_cine:
+        posicion_pelicula_elegida = peliculas_cine.index(pelicula_ingresada.upper())
+        id_primer_pelicula:str = id_posters_cine[0]
+        id_pelicula_elegida:str = id_posters_cine[posicion_pelicula_elegida]
+        imagen_primer_pelicula:ImageTk.PhotoImage = ImageTk.PhotoImage(file=f"poster_peliculas/poster{id_primer_pelicula}.png")
+        imagen_pelicula_elegida:ImageTk.PhotoImage = ImageTk.PhotoImage(file=f"poster_peliculas/poster{id_pelicula_elegida}.png")
+        id_posters_cine[0] = id_pelicula_elegida
+        id_posters_cine[posicion_pelicula_elegida]:str = id_primer_pelicula
+        poster_ref[0] = imagen_pelicula_elegida
+        poster_ref[posicion_pelicula_elegida] = imagen_primer_pelicula
+        botones[0].config(image=imagen_pelicula_elegida)
+        botones[posicion_pelicula_elegida].config(image=imagen_primer_pelicula)
+    else:
+        messagebox.showwarning("validar peliculas ingresada", f"Ingrese películas validas: {peliculas_cine}")
+
+def limitar_barra_desplazamiento(canvas:tkinter.Canvas) -> None:
         canvas.configure(scrollregion=canvas.bbox('all'))
 
-def Pantalla_Principal(dato_cine: dict, id_posters_cine: list[str]) -> None:
-    pantalla_principal = tkinter.Tk()
-    pantalla_principal.geometry("450x730")
-    pantalla_principal.resizable(0, True)
-    pantalla_principal.config(bg="black")
-    pantalla_principal.title(f"CINEMA{dato_cine['location']} - Pantalla Principal")
-    Encabezado(dato_cine['location'], pantalla_principal)
+def crear_boton_buscar_pelicula(nuevo_comando) -> None:
+    boton_busqueda:tkinter.Button = tkinter.Button(text="Buscar", command=nuevo_comando)
+    boton_busqueda.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
 
-    canvas = tkinter.Canvas(pantalla_principal, bg="black", width=430, height=600)
-    canvas.grid(row=1, column=0, columnspan=2, pady=5)
-    scrollbar = ttk.Scrollbar(pantalla_principal, orient="vertical", command=canvas.yview)
-    style = ttk.Style()
+def crear_cuadro_buscar_pelicula() -> tkinter.Entry:
+    cuadro_entrada:tkinter.Entry = tkinter.Entry()
+    cuadro_entrada.insert(0, "Ingrese película...")
+    cuadro_entrada.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
+    return cuadro_entrada
+
+def crear_canvas():
+    cuadro_de_lienzo:tkinter.Canvas = tkinter.Canvas(bg="black", width=435, height=600)
+    cuadro_de_lienzo.configure(highlightbackground='black')
+    cuadro_de_lienzo.grid(row=1, column=0, columnspan=2, pady=5)
+    return cuadro_de_lienzo
+
+def crear_barra_desplazamiento(canvas:tkinter.Canvas) -> None:
+    scrollbar:ttk.Scrollbar = ttk.Scrollbar(orient="vertical", command=canvas.yview)
+    style:ttk.Style = ttk.Style()
     style.theme_use('default')
     style.configure("TScrollbar", background="black")
     style.map("TScrollbar", background=[("active", "black")])
     scrollbar.grid(row=1, column=2, sticky=tkinter.N+tkinter.S, pady=5)
     canvas.configure(yscrollcommand=scrollbar.set)
-    canvas.bind('<Configure>', lambda event: on_configure(canvas))
+    canvas.bind('<Configure>', lambda event: limitar_barra_desplazamiento(canvas))
 
-    poster_ref = []
-    botones = []
-    cuadro_entrada = tkinter.Entry(pantalla_principal)
-    cuadro_entrada.insert(0, "Ingrese película...")
-    cuadro_entrada.grid(row=2, column=0, columnspan=2, padx=5, pady=5)
-    nuevo_comando = lambda: validar_ingreso(dato_cine, botones, poster_ref, id_posters_cine, cuadro_entrada.get())
-    boton_busqueda = tkinter.Button(pantalla_principal, text="Buscar", command=nuevo_comando)
-    boton_busqueda.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
-    for i in range(len(id_posters_cine)):
-        poster = ImageTk.PhotoImage(file=f"poster_peliculas/poster{id_posters_cine[i]}.png")
-        poster_ref.append(poster)
-        row = i // 2
-        col = es_par(i)
-        button = tkinter.Button(canvas, image=poster_ref[i], command=lambda i=i: Pantalla_Secundaria(dato_cine, id_posters_cine[i]))
-        canvas.create_window((col * 215 + 5, row * 301), window=button, anchor='nw')
-        botones.append(button)
+def crear_botones_posters(dato_cine:dict, id_posters:list, botones:list, posters_ref:list, canvas:tkinter.Canvas) -> None:
+    for i in range(len(id_posters)):
+        poster:ImageTk.PhotoImage = ImageTk.PhotoImage(file=f"poster_peliculas/poster{id_posters[i]}.png")
+        posters_ref.append(poster)
+        row:int = i // 2
+        col:int = es_par(i)
+        nuevo_comando = lambda i=i: Pantalla_Secundaria(dato_cine, id_posters[i])
+        boton_poster:tkinter.Button = tkinter.Button(canvas, image=posters_ref[i], command=nuevo_comando)
+        canvas.create_window((col * 215 + 10, row * 302), window=boton_poster, anchor='nw')
+        botones.append(boton_poster)
 
+def caracterizar_pantalla_principal(pantalla_principal:tkinter.Tk, dato_cine:dict) -> None:
+    pantalla_principal.geometry("460x740")
+    pantalla_principal.resizable(0, True)
+    pantalla_principal.config(bg="black")
+    pantalla_principal.title(f"CINEMA{dato_cine['location']} - Pantalla Principal")
+    Encabezado(dato_cine['location'], pantalla_principal)
+
+def Pantalla_Principal(dato_cine:dict, id_posters_cine:list[str]) -> None:
+    pantalla_principal:tkinter.Tk = tkinter.Tk()
+    caracterizar_pantalla_principal(pantalla_principal, dato_cine)
+    posters_ref:list[ImageTk.PhotoImage] = []
+    botones:list[tkinter.Button] = []
+    cuadro_de_lienzo:tkinter.Canvas = crear_canvas()
+    crear_barra_desplazamiento(cuadro_de_lienzo)
+    pelicula_buscada:tkinter.Entry = crear_cuadro_buscar_pelicula()
+    comando_boton_buscar = lambda: validar_ingreso(botones, posters_ref, id_posters_cine, pelicula_buscada.get())
+    crear_boton_buscar_pelicula(comando_boton_buscar)
+    crear_botones_posters(dato_cine, id_posters_cine, botones, posters_ref, cuadro_de_lienzo)
     pantalla_principal.mainloop()
 
 def calcular_id_sede_cine(datos_cines:dict) -> str:
-    id_cine = random.randint(1, len(datos_cines))
+    id_cine:int = random.randint(1, len(datos_cines))
     return id_cine
 
-def cargar_posters_cine(id_posters_cine:list[str]):
+def cargar_posters_cine(id_posters_cine:list[str])-> None:
     for id_pelicula in id_posters_cine:
         cargar_imagenes_poster(URL_BASE, HEADERS, id_pelicula)
 
