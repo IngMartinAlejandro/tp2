@@ -45,7 +45,7 @@ def gestion_error_conexion(request)->str:
         return "Error" + str(request.status_code)
 
 
-def consultar_peliculas(url_base:str,headers:dict)->list:
+def consultar_peliculas(url_base:str,headers:dict)->list[dict]:
     """
     PRE: 
     url_base: url base como se encuentra en archivo "Trabajo Práctico N°2 - Algoritmos I - Lanzillotta. (1).PDF",
@@ -133,7 +133,7 @@ def consultar_snacks(url_base:str,headers:str)->dict:
     gestion_error_conexion(snacks)
     return snacks.json()
 
-def consultar_info_cines(url_base:str,headers:dict)->list:
+def consultar_info_cines(url_base:str,headers:dict)->list[dict]:
     """
     PRE: 
     url_base: url base como se encuentra en archivo "Trabajo Práctico N°2 - Algoritmos I - Lanzillotta. (1).PDF",
@@ -162,9 +162,9 @@ def consultar_info_cines(url_base:str,headers:dict)->list:
 
     info_cines = requests.get(url_base + "/cinemas", headers = headers)
     return info_cines.json()
-    
 
-def consultar_peliculas_x_cine(url_base:str,cinema_id:str,headers:dict)->list:
+
+def consultar_peliculas_x_cine(url_base:str,cinema_id:str,headers:dict)->list[dict]:
     """
     PRE: 
     url_base: url base como se encuentra en archivo "Trabajo Práctico N°2 - Algoritmos I - Lanzillotta. (1).PDF",
@@ -188,9 +188,7 @@ def consultar_peliculas_x_cine(url_base:str,cinema_id:str,headers:dict)->list:
     """ 
 
     peliculas_x_cine = requests.get(url_base + "/cinemas/" + cinema_id + "/movies", headers = headers)
-
     gestion_error_conexion(peliculas_x_cine)
-
     return peliculas_x_cine.json()
 
 
@@ -240,13 +238,9 @@ def completar_peliculas_x_cine(url_base:str,headers:str):
     """
 
     info_cines= consultar_info_cines(url_base,headers)
-
     peliculas_x_cine=[]
-
     for cine in info_cines:
-
         peliculas_x_cine.append( consultar_peliculas_x_cine (url_base,"/"+cine["cinema_id"],headers)[0] ) 
-    
     return peliculas_x_cine
 
 
@@ -330,7 +324,7 @@ def adicion_snack(snacks_adquiridos:dict,snacks:dict)->float:
             if snack_adquirido[0] == snack[0]:
                 adicion += (snacks[1] * snack_adquirido[1]) 
     return adicion
-    
+
 
 def total_consumido(precio_snack:float,precio_entradas:float)->float:
     """
@@ -423,11 +417,6 @@ def Boton_regreso(pantalla:tkinter, fila:int = None, columna:int = None) -> None
                                     bg = MARCO_COLOR, command = pantalla.destroy)
     boton_regreso.grid(row = fila, column = columna)
 
-"""
-#######################################################################################################################
-                                                    PANTALLA CHECKOUT
-#######################################################################################################################
-"""
 
 def Configuracion(pantalla: tkinter) -> None:
     pantalla.geometry(TAMANIO_PANTALLA)
@@ -454,11 +443,9 @@ def Checkout() -> None:
     label_listado_titulo = tkinter.Label(pantalla_checkout, text = "SE COMPRO:", font = TITULO_FONT, bg = FONDO_COLOR,
                                     fg = LETRA_COLOR)
     label_listado_titulo.grid(row = 2, column = 0, ipady = 20, columnspan = 2, sticky = "w")
-
     label_listado_1 = tkinter.Label(pantalla_checkout, text = f"- {cant_tickets} : Tickets".upper(), font = LIST_FONT,
                     bg = FONDO_COLOR, fg = LETRA_COLOR)
     label_listado_1.grid(row = (3), column = 0, sticky = "e")
-
     i = 0
     for n in list_snack:
         label_listado_2 = tkinter.Label(pantalla_checkout, text = f"- {list_snack[n]} : {n}".upper(), font = LIST_FONT,
@@ -470,7 +457,6 @@ def Checkout() -> None:
     label_precio = tkinter.Label(pantalla_checkout, text = "PRECIO TOTAL:", font = TITULO_FONT, bg = FONDO_COLOR,
                                     fg = LETRA_COLOR)
     label_precio.grid(row = 10, column = 0, ipady = 20, columnspan = 2, sticky = "w")
-
     label_precio_total = tkinter.Label(pantalla_checkout, text = f"{precio_total}$", font = TITULO_FONT, bg = FONDO_COLOR,
                                     fg = LETRA_COLOR)
     label_precio_total.grid(row = 10, column = 1,)
@@ -484,22 +470,15 @@ def Checkout() -> None:
                                     bg = MARCO_COLOR)
     boton_comprar_entradas.grid(row = 21, column = 1)
 
-"""
-#######################################################################################################################
-                                                PANTALLA RESERVA
-#######################################################################################################################
-"""
-
 def Snack(pantalla_reserva) -> None:
     #Esta es la informacion que debera recibir de la API
     #---------------------------------------------------    
-    snacks = consultar_snacks(URL_BASE,HEADERS)
+    snacks = {"doritos": "2500.00", "popcorn_xxl": "4300.00"}
     cant_snacks = 0
     #---------------------------------------------------
     label_listado_titulo = tkinter.Label(pantalla_reserva, text = "LOS SNACKS DISPONIBLES SON:", font = TITULO_FONT, bg = FONDO_COLOR,
                                     fg = LETRA_COLOR)
     label_listado_titulo.grid(row = 6, column = 0, ipady = 20, columnspan = 2, sticky = "w")
-
     i = 0
     for n in snacks:
         label_listado = tkinter.Label(pantalla_reserva, text = f"{n} ({snacks[n]}): {cant_snacks}".upper(), font = LIST_FONT,
@@ -510,7 +489,6 @@ def Snack(pantalla_reserva) -> None:
                                     fg = LETRA_COLOR, text = "Cantidad +1")
         boton_entradas.grid(row = (7 + i), column = 1)
         i += 1
-
     decoracion =  tkinter.Frame(pantalla_reserva, width = 576, height = 5, bg = FONDO_COLOR)
     decoracion.grid(column = 0, row = 18, ipady = 20, columnspan = 2)
     
@@ -551,7 +529,6 @@ def Pantalla_Reserva(dato_cine, id_pelicula) -> None:
     boton_comprar_entradas.grid(row = 5, column = 1)
     
     comando_snack = lambda: Snack(pantalla_reserva)
-
     boton_snack = tkinter.Button(pantalla_reserva, text = "Añadir Snacks", font = BOTON_FONT,
                                     bg = MARCO_COLOR, command = comando_snack)
     boton_snack.grid(row = 6, column = 0)
@@ -565,11 +542,8 @@ def Pantalla_Reserva(dato_cine, id_pelicula) -> None:
                                     bg = MARCO_COLOR, command = Checkout)
     boton_comprar_entradas.grid(row = 21, column = 1)
 
-"""
-#######################################################################################################################
-                                        FUNCIONES DE LA PANTALLA SECUNDARIA
-#######################################################################################################################
-"""
+################################### FUNCIONES DE LA PANTALLA SECUNDARIA ############################################
+####################################################################################################################
 
 def configurar_pantalla_secundaria(pantalla:tkinter.Toplevel, datos_cine:dict) -> None:
     """
@@ -578,7 +552,7 @@ def configurar_pantalla_secundaria(pantalla:tkinter.Toplevel, datos_cine:dict) -
     """
     pantalla.geometry("500x790")
     pantalla.config(bg="#242424")
-    pantalla.resizable(0, True)
+    pantalla.resizable(False, False)
     pantalla.grab_set()
     pantalla.title(f"CINEMA{datos_cine['location']} - Pantalla Pelicula")
 
@@ -643,13 +617,9 @@ def Pantalla_Secundaria(dato_cine:dict, id_pelicula:str) -> None:
     comando = lambda:Pantalla_Reserva(dato_cine, id_pelicula)
     boton_reservar(pantalla_secundaria, comando)
 
-"""
-#######################################################################################################################
-                                        FUNCIONES DE LA PANTALLA PRINCIPAL
-#######################################################################################################################
-"""
-
-def completar_info_cine(url_base:str,headers:str)->list:
+################################### FUNCIONES DE LA PANTALLA PRINCIPAL ############################################
+###################################################################################################################
+def completar_info_cine(url_base:str,headers:str)->list[dict]:
     """
     PRE:
     info_cines: estructura de datos definida por los docentes en archivo, "API Reference(1).PDF"
@@ -745,7 +715,7 @@ def completar_info_cine(url_base:str,headers:str)->list:
                 cine["peliculas"] = peliculas_cine_obtenido
     return info_cine
 
-def nombres_peliculas_x_cine(id_peliculas:list) -> list:
+def nombres_peliculas_x_cine(id_peliculas:list[str]) -> list[str]:
     """
     PRE:Id_peliculas y la función consultar_pelicula tiene que estar definidas y/o creadas .
     POST:Devuelve una lista con los nombres de todas las peliculas del cine en que se encuntra.
@@ -756,7 +726,7 @@ def nombres_peliculas_x_cine(id_peliculas:list) -> list:
         peliculas_cine_consultado.append(peliculas_totales[int(id_pelicula) - 1]["name"])
     return peliculas_cine_consultado
 
-def validar_ingreso(botones:list, poster_ref:list, id_posters_cine:list, pelicula_ingresada:str) -> None:
+def validar_ingreso(botones:list[tkinter.Button], poster_ref:list, id_posters_cine:list[str], pelicula_ingresada:str) -> None:
     """
     PRE:Botones, poster_ref, id_posters_cine, pelicula_ingresada tienen que estar definidos.
     POST:Devuelve un mensaje de alerta con los nombres de las películas validas si pelicula ingresada es incorrecta,
@@ -852,12 +822,16 @@ def configurar_pantalla_principal(pantalla_principal:tkinter.Tk, dato_cine:dict)
     POST:Define las características básicas de la pantalla principal.
     """
     pantalla_principal.geometry("460x740")
-    pantalla_principal.resizable(0, True)
+    pantalla_principal.resizable(False, False)
     pantalla_principal.config(bg="black")
     pantalla_principal.title(f"CINEMA{dato_cine['location']} - Pantalla Principal")
     Encabezado(dato_cine['location'], pantalla_principal)
 
-def Pantalla_Principal(dato_cine:dict, id_posters_cine:list) -> None:
+
+###################################       FUNCIONES DEL MAIN      #################################################
+###################################################################################################################
+
+def Pantalla_Principal(dato_cine:dict, id_posters_cine:list[str]) -> None:
     """
     PRE:Datos_cine e id_posters_cine tiene que estar definidos.
     POST:Crea un ventana con los posters de todas las películas ubicadas en botones
@@ -875,12 +849,6 @@ def Pantalla_Principal(dato_cine:dict, id_posters_cine:list) -> None:
     crear_botones_posters(dato_cine, id_posters_cine, botones, posters_ref, cuadro_de_lienzo)
     pantalla_principal.mainloop()
 
-"""
-#######################################################################################################################
-                                        FUNCIONES DEL MAIN
-#######################################################################################################################
-"""
-
 def calcular_id_sede_cine(datos_cines:dict) -> str:
     """
     PRE:Datos cine debe estar definido.
@@ -889,7 +857,7 @@ def calcular_id_sede_cine(datos_cines:dict) -> str:
     id_cine:int = random.randint(1, len(datos_cines))
     return id_cine
 
-def cargar_posters_cine(id_posters_cine:list)-> None:
+def cargar_posters_cine(id_posters_cine:list[str])-> None:
     """
     PRE:Id_posters_cine tiene que estar definido
     POST:Envia cada id(str) a la función cargar_imagenes_posters para poder guardarlos.
