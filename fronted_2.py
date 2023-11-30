@@ -558,7 +558,7 @@ def configurar_pantalla_secundaria(pantalla:tkinter.Toplevel, datos_cine:dict) -
     """
     pantalla.geometry("500x790")
     pantalla.config(bg="#242424")
-    pantalla.resizable(0, True)
+    pantalla.resizable(False, False)
     pantalla.grab_set()
     pantalla.title(f"CINEMA{datos_cine['location']} - Pantalla Pelicula")
 
@@ -828,7 +828,7 @@ def configurar_pantalla_principal(pantalla_principal:tkinter.Tk, dato_cine:dict)
     POST:Define las características básicas de la pantalla principal.
     """
     pantalla_principal.geometry("460x740")
-    pantalla_principal.resizable(0, True)
+    pantalla_principal.resizable(False, False)
     pantalla_principal.config(bg="black")
     pantalla_principal.title(f"CINEMA{dato_cine['location']} - Pantalla Principal")
     Encabezado(dato_cine['location'], pantalla_principal)
